@@ -63,7 +63,7 @@ class EclassConnector:
         self.page.goto("https://eclass.upatras.gr/main/my_courses.php")
         table_selector = "table"
         self.page.wait_for_selector(table_selector)
-        courses = self.page.query_selector_all(f"{table_selector} tbody tr a")
+        courses = self.page.query_selector_all(f"{table_selector} tbody tr td:first-child a")
         for course in courses:
             print(course.text_content())
             # print(course.text_content() + " - " + course.get_attribute("href"))
@@ -76,6 +76,7 @@ class EclassConnector:
                     "name": course.text_content(),
                     "url": course.get_attribute("href")
                 })
-        with open("courses.json", "w", encoding="utf-8") as f:
-            json.dump(courses_list, f, ensure_ascii=False, indent=2)
-        print("Courses saved to courses.txt")
+            
+            with open("courses.json", "w", encoding="utf-8") as f:
+                json.dump(courses_list, f, ensure_ascii=False, indent=2)
+            print("Courses saved to courses.txt")
