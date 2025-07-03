@@ -59,4 +59,5 @@ class progressConnector:
             page.wait_for_selector(img_selector)
             src = page.get_attribute( img_selector, "src")
             print("Image source:", src)
-            input("Press Enter to exit and close the browser")
+            # input("Press Enter to exit and close the browser")
+
