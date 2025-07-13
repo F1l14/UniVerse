@@ -22,8 +22,6 @@ class User:
             # Decrypt the username and password
             username = unpad(cipher.decrypt(enc_username), 16).decode('utf-8')
             password = unpad(cipher.decrypt(enc_password), 16).decode('utf-8') 
-            print(f"Username: {username}")
-            print(f"Password: {password}")
             return username, password
 
     def register(self):
@@ -46,3 +44,5 @@ class User:
             }
             with open("data/user_credentials.json", "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
+        
+        self.login()
