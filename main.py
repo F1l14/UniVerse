@@ -16,6 +16,8 @@ ocr = OCR()
 ocr.preprocess("temp/captcha.png")
 result = ocr.recognise_text("output/processed.png")
 print("main result:", result)
-# os.remove("temp/captcha.png")
+os.remove("temp/captcha.png")
+progress.verify_captcha(result)
+input("Press Enter to exit...")
 
 

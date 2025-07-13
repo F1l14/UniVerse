@@ -87,3 +87,13 @@ class progressConnector:
             print("✅ Captcha image saved as 'captcha.png'")
         else:
             print(f"⚠️ Failed to fetch captcha image, status code: {response.status_code}")
+
+    def verify_captcha(self, captcha_text):
+        iframe = self.page.frame(name="isolatedWorkArea")
+        container = iframe.query_selector("div.lsHTMLContainer")
+        input_element = container.query_selector("input[ct='I']")
+        input_element.fill(captcha_text)
+        iframe.locator("div.lsHTMLContainer div.lsButton[lsdata*='ΕΠΟΜΕΝΟ']").click()
+
+
+        
