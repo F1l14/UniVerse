@@ -77,6 +77,6 @@ class EclassConnector:
                     "url": course.get_attribute("href")
                 })
             
-            with open("courses.json", "w", encoding="utf-8") as f:
+            with open("/data/courses.json", "w", encoding="utf-8") as f:
                 json.dump(courses_list, f, ensure_ascii=False, indent=2)
             print("Courses saved to courses.txt")
