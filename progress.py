@@ -1,4 +1,5 @@
 from playwright.sync_api import sync_playwright
+import requests
 class progressConnector:
     def __init__(self, username, password, headless=True):
         self.username = username
@@ -60,7 +61,9 @@ class progressConnector:
 
 
     def fetch_captcha_image(self):
+
         self.page.wait_for_load_state("networkidle")
+        # ! FIXME: This is a workaround to ensure the page is fully loaded
         self.page.wait_for_timeout(4000)  # wait extra 3 sec
 
         # for frame in self.page.frames:
@@ -74,12 +77,13 @@ class progressConnector:
             return
         
         container = iframe.query_selector("div.lsHTMLContainer")
-        image = container.query_selector_all("img[ct='IMG']")
+        image_elemet = container.query_selector("img[ct='IMG']")
         url = "https://matrix.upatras.gr/"
-        for img in image:
-            print("📷 Image found:", img.get_attribute("src"))
-            page = self.browser.new_page()
-            page.goto(url + img.get_attribute("src"))
-            input("Press Enter to continue after viewing the image...")
-            # Save the image or process it as needed
-            # Example: img.screenshot(path="captcha.png")
+        img_url = url + image_elemet.get_attribute("src")
+        response = requests.get(img_url)
+        if response.status_code == 200:
+            with open("temp/captcha.png", "wb") as f:
+                f.write(response.content)
+            print("✅ Captcha image saved as 'captcha.png'")
+        else:
+            print(f"⚠️ Failed to fetch captcha image, status code: {response.status_code}")
