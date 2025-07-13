@@ -1,6 +1,21 @@
-from new_eclass import EclassConnector
+from eclass import EclassConnector
+from progress import progressConnector
+from user import User
+from ocr import OCR
+import os
+user = User()
+username, password = user.login()
+# eclass = EclassConnector(username, password, headless=False)
+# eclass.login()
+# eclass.fetch_courses()
 
-username = input("username: ")
-password = input("password: ")
-eclass = EclassConnector(username, password, headless=False)
-eclass.login()
+progress = progressConnector(username, password, headless=False)
+progress.login()
+progress.fetch_captcha_image()
+ocr = OCR()
+ocr.preprocess("temp/captcha.png")
+result = ocr.recognise_text("output/processed.png")
+print("main result:", result)
+# os.remove("temp/captcha.png")
+
+
