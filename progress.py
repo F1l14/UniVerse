@@ -1,6 +1,6 @@
 from playwright.sync_api import sync_playwright
 import requests
-class progressConnector:
+class ProgressConnector:
     def __init__(self, username, password, headless=True):
         self.username = username
         self.password = password
@@ -94,6 +94,42 @@ class progressConnector:
         input_element = container.query_selector("input[ct='I']")
         input_element.fill(captcha_text)
         iframe.locator("div.lsHTMLContainer div.lsButton[lsdata*='ΕΠΟΜΕΝΟ']").click()
+        self.page.wait_for_load_state("networkidle")
+        # ! FIXME: This is a workaround to ensure the page is fully loaded
+        self.page.wait_for_timeout(4000)  # wait extra 3 sec
 
-
+    def get_grades(self):
         
+        iframe = self.page.frame(name="isolatedWorkArea")
+        table = iframe.query_selector("table.urST3BdBrd")
+        rows = table.query_selector_all("tbody tr[rt='1']")
+
+        grades = {}
+        for row in rows:
+            
+            cells = row.query_selector_all("td")
+            if len(cells) < 5:
+                continue
+            semester = cells[0].text_content().strip()
+            course = cells[3].text_content().strip()
+            grade = cells[4].text_content().strip()
+
+            #append to dictionary
+            if semester not in grades:
+                grades[semester] = []
+            grades[semester].append({
+                "course": course,
+                "grade": grade
+            })
+
+            print(f"Semester: {semester}, Course: {course}, Grade: {grade}")
+
+        # save grades to file
+        self.save_grades(grades)
+
+
+    def save_grades(self, grades):
+        import json
+        with open("data/grades.json", "w", encoding="utf-8") as f:
+            json.dump(grades, f, ensure_ascii=False, indent=2)
+        print("Grades saved to data/grades.json")
