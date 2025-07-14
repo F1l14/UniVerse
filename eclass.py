@@ -8,12 +8,24 @@ class EclassConnector:
         self.page = None
         self.headless = headless
         self.playwright = sync_playwright().start()
+
+    def block_resources(self, route):
+        request = route.request
+        # print(f"Resource type: {route.request.resource_type}, URL: {route.request.url}")
+        # route.continue_()
+        if request.resource_type in ["image", "font", "stylesheet"]:
+            route.abort()
+        else:
+            route.continue_()
+
     def login(self):
         initial_url = "https://eclass.upatras.gr/secure"
 
         
         self.browser = self.playwright.chromium.launch(headless=self.headless)  # headless mode
         self.context = self.browser.new_context()
+        # *for all urls limit resoursces to reduce load time
+        self.context.route("**/*", self.block_resources)
         self.page = self.context.new_page()
 
         # Step 1: Go to initial URL (login page or redirect)
