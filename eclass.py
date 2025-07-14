@@ -92,8 +92,7 @@ class EclassConnector:
         def folder_handler(cells):
             print("Folder:", cells[2].text_content())
             has_new_content = cells[2].query_selector("span")
-            # ! TESTING
-            has_new_content = True
+
             if has_new_content:
                 url = cells[2].query_selector("a").get_attribute("href")
                 new_page = self.context.new_page()
@@ -104,6 +103,17 @@ class EclassConnector:
         
         def file_handler(cells):
             print("File:", cells[2].text_content())
+            has_new_content = cells[2].query_selector("span")
+            if has_new_content:
+                url = cells[2].query_selector("a").get_attribute("href")
+                file_name = cells[2].text_content().strip()
+                response = self.page.request.get(base_url + url)
+                if response.ok:
+                    with open(f"output/{file_name}", "wb") as f:
+                        f.write(response.body())
+                    print(f"File '{file_name}' downloaded successfully.")
+                else:
+                    print(f"Failed to download file '{file_name}'. Status code: {response.status}")
             return None
         
         for row in rows:
@@ -115,6 +125,3 @@ class EclassConnector:
                     folder_handler(cells)
                 else:
                     file_handler(cells)
-            # new_content = cells[1].locator("span").count()> 0
-            # if new_content:
-            #     print("New content found in folder:", cells[0].text_content())
