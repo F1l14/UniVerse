@@ -80,3 +80,30 @@ class EclassConnector:
             with open("/data/courses.json", "w", encoding="utf-8") as f:
                 json.dump(courses_list, f, ensure_ascii=False, indent=2)
             print("Courses saved to courses.txt")
+        
+    def fetch_course_content(self, course_id):
+        self.page.goto(f"https://eclass.upatras.gr/modules/document/?course={course_id}")
+        self.page.wait_for_load_state('networkidle')
+        table = self.page.query_selector("table")
+        rows = table.query_selector_all("tbody tr")
+
+        def folder_handler(cells):
+            print("Folder:", cells[2].text_content())
+            return
+        
+        def file_handler(cells):
+            print("File:", cells[2].text_content())
+            return None
+        
+        for row in rows:
+            # print(row.text_content())
+            cells = row.query_selector_all("td")
+            if len(cells) > 0:
+                type = cells[1].query_selector("span").get_attribute("class")
+                if "fa-folder" in type:
+                    folder_handler(cells)
+                else:
+                    file_handler(cells)
+            # new_content = cells[1].locator("span").count()> 0
+            # if new_content:
+            #     print("New content found in folder:", cells[0].text_content())
