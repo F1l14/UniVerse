@@ -93,7 +93,7 @@ class OCR:
             for x in range(img.width):
                 if is_green(pixels[x, y]):
                     pixels[x, y] = (0, 0, 0)  # Replace with black
-            # Convert to numpy array for OpenCV processing    
+            
 
         img = img.convert("L")  # Convert to grayscale
         # Adjust contrast
