@@ -2,16 +2,28 @@ from plyer import notification
 import schedule
 import time
 
-def job():
+class Notification:
+    def __init__(self, app_name="UniVerse"):
+        self.app_name = app_name
 
-    notification.notify(
-        app_name="UniVerse",
-        title="You have a new grade",
-        message="This is a system notification",
-        timeout=5  # seconds
-    )
+    def notify(self, title, message, timeout=5):
+        notification.notify(
+            app_name=self.app_name,
+            title=title,
+            message=message,
+            timeout=timeout  # seconds
+        )
 
-schedule.every(10).seconds.do(job)
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+# def job():
+
+#     notification.notify(
+#         app_name="UniVerse",
+#         title="You have a new grade",
+#         message="This is a system notification",
+#         timeout=5  # seconds
+#     )
+
+# schedule.every(10).seconds.do(job)
+# while True:
+#     schedule.run_pending()
+#     time.sleep(1)
