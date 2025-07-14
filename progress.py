@@ -9,12 +9,22 @@ class ProgressConnector:
         self.headless = headless
         self.playwright = sync_playwright().start()
 
+    def block_resources(self, route):
+        request = route.request
+        if request.resource_type in ["font"] or request.url.lower().endswith(('.jpg', '.jpeg', '.gif','.svg', '.pdf')): 
+            route.abort()
+        else:
+            route.continue_()
+
     def login(self):
         initial_url = "https://progress.upatras.gr"
 
         
         self.browser = self.playwright.chromium.launch(headless=self.headless)  # headless mode
-        self.page = self.browser.new_page()
+        self.context = self.browser.new_context()
+        # *for all urls limit resoursces to reduce load time
+        self.context.route("**/*", self.block_resources)
+        self.page = self.context.new_page()
 
         # Step 1: Go to initial URL (login page or redirect)
         self.page.goto(initial_url)
