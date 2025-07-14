@@ -4,8 +4,8 @@ from user import User
 from ocr import OCR
 import os
 
-def run_progress():
-    progress = ProgressConnector(username, password, headless=False)
+def run_progress(headless):
+    progress = ProgressConnector(username, password, headless=headless)
     progress.login()
     progress.fetch_captcha_image()
     ocr = OCR()
@@ -33,7 +33,7 @@ choice = input("Choose an option (1/2/3): ")
 if choice == '1':
     run_eclass()
 elif choice == '2':
-    run_progress()
+    run_progress(headless=True)
 elif choice == '3':
     print("Exiting...")
 else:
