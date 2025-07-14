@@ -1,5 +1,7 @@
 from playwright.sync_api import sync_playwright
 import requests
+import os
+from notification import Notification
 class ProgressConnector:
     def __init__(self, username, password, headless=True):
         self.username = username
@@ -115,29 +117,71 @@ class ProgressConnector:
         rows = table.query_selector_all("tbody tr[rt='1']")
 
         grades = {}
+        # calculate the latest academic year to compare grades
+        max_year = None
         for row in rows:
             
             cells = row.query_selector_all("td")
-            if len(cells) < 5:
+            if len(cells) < 8:
                 continue
             semester = cells[0].text_content().strip()
             course = cells[3].text_content().strip()
             grade = cells[4].text_content().strip()
+            year = cells[5].text_content().strip()
+            # academic year is in the format "YYYY-YY (e.g. 2024-25)"
+            year= int(year.split("-")[0])
+            
+            if max_year is None or  year > max_year:
+                max_year = year
+            state = cells[7].text_content().strip()
+            if state in ["Τελικό","Τελικό (Επαναληπτικές)"]:
+                state = "final"
+            elif state == "Προσωρινό":
+                state = "temporary"
+            else:
+                state = "unknown"
 
             #append to dictionary
             if semester not in grades:
-                grades[semester] = []
-            grades[semester].append({
-                "course": course,
-                "grade": grade
-            })
+                grades[semester] = {}
 
-            print(f"Semester: {semester}, Course: {course}, Grade: {grade}")
+            if course in grades[semester]:
+                # if the course exists , skip it
+                continue
+            
+            grades[semester][course]={
+                "grade": grade,
+                "state": state,
+                "year": year
+            }
+
+            # print(f"Semester: {semester}, Course: {course}, Grade: {grade}")
 
         # save grades to file
+        self.compare_grades(grades, max_year)
         self.save_grades(grades)
 
+    def compare_grades(self, grades, academic_year):
+        import json
+        if not os.path.exists("data/grades.json"):
+            print("No previous grades found, saving current grades.")
+            return
+        
+        with open("data/grades.json", "r", encoding="utf-8") as f:
+            previous_grades = json.load(f)
 
+        for semester, courses in grades.items():
+            
+            # check only the current academic year
+            for course_name, details in courses.items():
+                if details["year"] == academic_year:
+                    if semester in previous_grades and course_name in previous_grades[semester]:
+                        if previous_grades[semester][course_name]["state"] != details["state"] or previous_grades[semester][course_name]["grade"] != details["grade"]:
+                                    Notification().notify(
+                                        title="Νέος Βαθμός",
+                                        message=f"{course_name}\n Βαθμός: {details['grade']}",
+                                        timeout=0
+                                    )
     def save_grades(self, grades):
         import json
         with open("data/grades.json", "w", encoding="utf-8") as f:
