@@ -12,8 +12,9 @@ class EclassConnector:
         initial_url = "https://eclass.upatras.gr/secure"
 
         
-        browser = self.playwright.chromium.launch(headless=self.headless)  # headless mode
-        self.page = browser.new_page()
+        self.browser = self.playwright.chromium.launch(headless=self.headless)  # headless mode
+        self.context = self.browser.new_context()
+        self.page = self.context.new_page()
 
         # Step 1: Go to initial URL (login page or redirect)
         self.page.goto(initial_url)
@@ -82,6 +83,7 @@ class EclassConnector:
             print("Courses saved to courses.txt")
         
     def fetch_course_content(self, course_id):
+        base_url = "https://eclass.upatras.gr"
         self.page.goto(f"https://eclass.upatras.gr/modules/document/?course={course_id}")
         self.page.wait_for_load_state('networkidle')
         table = self.page.query_selector("table")
@@ -89,6 +91,15 @@ class EclassConnector:
 
         def folder_handler(cells):
             print("Folder:", cells[2].text_content())
+            has_new_content = cells[2].query_selector("span")
+            # ! TESTING
+            has_new_content = True
+            if has_new_content:
+                url = cells[2].query_selector("a").get_attribute("href")
+                new_page = self.context.new_page()
+                new_page.goto(base_url+url)
+                new_page.wait_for_load_state('networkidle')
+
             return
         
         def file_handler(cells):
