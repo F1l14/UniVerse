@@ -10,6 +10,7 @@ class ProgressConnector:
         self.page = None
         self.headless = headless
         self.playwright = sync_playwright().start()
+        self.captcha_counter = 0
 
     def block_resources(self, route):
         request = route.request
@@ -72,23 +73,26 @@ class ProgressConnector:
         self.page.wait_for_load_state('networkidle')
 
 
-    def fetch_captcha_image(self):
-
+    def fetch_captcha_image(self, reload=False):
         self.page.wait_for_load_state("networkidle")
         # ! FIXME: This is a workaround to ensure the page is fully loaded
         self.page.wait_for_timeout(4000)  # wait extra 3 sec
 
-        # for frame in self.page.frames:
-        #     print("📄 Frame:")
-        #     print("  Name:", frame.name)
-        #     print("  URL :", frame.url)
-
+        
         iframe = self.page.frame(name="isolatedWorkArea")
         if not iframe:
             print("⚠️ No iframe found with id 'isolatedWorkArea'")
             return
         
         container = iframe.query_selector("div.lsHTMLContainer")
+        if reload:
+            reload_button = container.query_selector("div.lsButton[title*='Ανανέωση']")
+            if reload_button:
+                reload_button.click()
+                self.page.wait_for_timeout(2000)  # Wait for reload to complete
+            else:
+                print("⚠️ Reload button not found.")
+                return False
         image_elemet = container.query_selector("img[ct='IMG']")
         url = "https://matrix.upatras.gr/"
         img_url = url + image_elemet.get_attribute("src")
@@ -97,8 +101,11 @@ class ProgressConnector:
             with open("temp/captcha.png", "wb") as f:
                 f.write(response.content)
             print("✅ Captcha image saved as 'captcha.png'")
+            return True
         else:
             print(f"⚠️ Failed to fetch captcha image, status code: {response.status_code}")
+            return False
+        
 
     def verify_captcha(self, captcha_text):
         iframe = self.page.frame(name="isolatedWorkArea")
@@ -114,7 +121,11 @@ class ProgressConnector:
         
         iframe = self.page.frame(name="isolatedWorkArea")
         table = iframe.query_selector("table.urST3BdBrd")
-        rows = table.query_selector_all("tbody tr[rt='1']")
+        try:
+            rows = table.query_selector_all("tbody tr[rt='1']")
+        except Exception as e:
+            print("⚠️ Retrying captcha...")
+            return True # retry captcha if table not found
 
         grades = {}
         # calculate the latest academic year to compare grades
@@ -160,6 +171,7 @@ class ProgressConnector:
         # save grades to file
         self.compare_grades(grades, max_year)
         self.save_grades(grades)
+        return False # no retry needed
 
     def compare_grades(self, grades, academic_year):
         import json

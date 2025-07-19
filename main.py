@@ -6,16 +6,27 @@ import os
 
 def run_progress(headless):
     from ocr import OCR
+    retry = True
+    retry_counter = 0
     progress = ProgressConnector(username, password, headless=headless)
     progress.login()
-    progress.fetch_captcha_image()
-    ocr = OCR()
-    ocr.preprocess("temp/captcha.png")
-    result = ocr.recognise_text("output/processed.png")
-    print("main result:", result)
-    os.remove("temp/captcha.png")
-    progress.verify_captcha(result)
-    progress.get_grades()
+    while retry:
+        if retry_counter > 5:
+            print("❌ Too many retries, exiting...")
+            break
+        
+        # reload the image only after the first attempt
+        reload = retry_counter > 1
+        retry_counter += 1
+        while(not progress.fetch_captcha_image(reload = reload)):
+            print("fetching image...")
+        ocr = OCR()
+        ocr.preprocess("temp/captcha.png")
+        result = ocr.recognise_text("output/processed.png")
+        print("main result:", result)
+        os.remove("temp/captcha.png")
+        progress.verify_captcha(result)
+        retry = progress.get_grades()
 
 def run_eclass(headless):
     eclass = EclassConnector(username, password, headless=headless)
@@ -32,7 +43,7 @@ choice = input("Choose an option (1/2/3): ")
 if choice == '1':
     run_eclass(headless=True)
 elif choice == '2':
-    run_progress(headless=True)
+    run_progress(headless= False)
 elif choice == '3':
     print("Exiting...")
 else:
