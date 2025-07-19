@@ -1,4 +1,6 @@
 from playwright.sync_api import sync_playwright
+from pathlib import Path
+import os
 
 class EclassConnector:
     def __init__(self, username, password, headless=True):
@@ -85,15 +87,44 @@ class EclassConnector:
             import json
             courses_list = []
             for course in courses:
+                url = course.get_attribute("href")
+                id = url.split("/")[-2]
                 courses_list.append({
                     "name": course.text_content(),
-                    "url": course.get_attribute("href")
+                    "url": url,
+                    "id": id,
+                    "sync": False
                 })
             
-            with open("/data/courses.json", "w", encoding="utf-8") as f:
+            with open("data/courses.json", "w", encoding="utf-8") as f:
                 json.dump(courses_list, f, ensure_ascii=False, indent=2)
             print("Courses saved to courses.txt")
+    
+    def sync_courses(self):
+        import json
+        with open("data/courses.json", "r", encoding="utf-8") as f:
+            courses = json.load(f)
         
+        home_dir = Path.home()
+        documents_dir = home_dir / "Documents"
+        app_dir = documents_dir / "UniVerse"
+        if not os.path.exists(app_dir):
+            print("Creating app directory in Documents...")
+            os.makedirs(app_dir)
+        for course in courses:
+            if course["sync"]:
+                print(f"Syncing course: {course['name']}")
+                course_dir = app_dir / course["name"]
+                if not os.path.exists(course_dir):
+                    print("Creating course directory...")
+                    os.makedirs(course_dir)
+                files = [file.name for file in Path(course_dir).iterdir()]
+                print(files)
+                # self.fetch_course_content(course["url"].split("=")[-1])
+                
+        
+        print("Courses synced and saved.")
+
     def fetch_course_content(self, course_id):
         base_url = "https://eclass.upatras.gr"
         self.page.goto(f"https://eclass.upatras.gr/modules/document/?course={course_id}")
