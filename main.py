@@ -1,10 +1,11 @@
 from eclass import EclassConnector
 from progress import ProgressConnector
 from user import User
-from ocr import OCR
+
 import os
 
 def run_progress(headless):
+    from ocr import OCR
     progress = ProgressConnector(username, password, headless=headless)
     progress.login()
     progress.fetch_captcha_image()
@@ -16,14 +17,12 @@ def run_progress(headless):
     progress.verify_captcha(result)
     progress.get_grades()
 
-def run_eclass():
-    eclass = EclassConnector(username, password, headless=False)
+def run_eclass(headless):
+    eclass = EclassConnector(username, password, headless=headless)
     eclass.login()
     # eclass.fetch_courses()
-    eclass.fetch_course_content("CEID1159")  # Example usage to fetch course content
-    # eclass.fetch_course_content("course_id")  # Example usage to fetch course content
-
-
+    eclass.sync_courses()
+    
 
 user = User()
 username, password = user.login()
@@ -31,7 +30,7 @@ print(f"Logged in as {username}")
 print("Options:\n1. Eclass\n2. Progress\n3. Exit")
 choice = input("Choose an option (1/2/3): ")
 if choice == '1':
-    run_eclass()
+    run_eclass(headless=True)
 elif choice == '2':
     run_progress(headless=True)
 elif choice == '3':
@@ -39,6 +38,6 @@ elif choice == '3':
 else:
     print("Invalid choice. Exiting...")
 
-input("Press Enter to exit...")
+# input("Press Enter to exit...")
 
 
