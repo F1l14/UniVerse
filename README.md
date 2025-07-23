@@ -1,7 +1,7 @@
 # UniVerse
 ## Feature Availability
 | Feature  |  General  | UPatras  |  CEID  |
-|  -----    | -----  |  -----  |  -----  |
+|  :---:    | :---:  |  :---:  |  :---:  |
 | Eclass   |  :white_check_mark: |  :white_check_mark:  |  :white_check_mark:|
 | Grades   | :x: |  :white_check_mark:  |  :white_check_mark:|
 | News  | :x: | :x: |  :white_check_mark:
