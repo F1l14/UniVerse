@@ -3,6 +3,7 @@ import json
 import base64
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
+import getpass
 class User:
     def __init__(self):
         pass
@@ -13,16 +14,20 @@ class User:
         
         with open("data/user_credentials.json", "r", encoding="utf-8") as f:
             data = json.load(f)
-            encryption = input("Decrypt Password: ")
-            encryption = pad(encryption.encode(), 16)  # pad the password to be a multiple of 16 bytes for AES compatibility
-            cipher = AES.new(encryption, AES.MODE_ECB)
-            # Decode the base64 encoded username and password
-            enc_username = base64.b64decode(data["username"])
-            enc_password = base64.b64decode(data["password"])
-            # Decrypt the username and password
-            username = unpad(cipher.decrypt(enc_username), 16).decode('utf-8')
-            password = unpad(cipher.decrypt(enc_password), 16).decode('utf-8') 
-            return username, password
+            encryption = getpass.getpass("Decrypt Password: ")
+            try:
+                encryption = pad(encryption.encode(), 16)  # pad the password to be a multiple of 16 bytes for AES compatibility
+                cipher = AES.new(encryption, AES.MODE_ECB)
+                # Decode the base64 encoded username and password
+                enc_username = base64.b64decode(data["username"])
+                enc_password = base64.b64decode(data["password"])
+                # Decrypt the username and password
+                username = unpad(cipher.decrypt(enc_username), 16).decode('utf-8')
+                password = unpad(cipher.decrypt(enc_password), 16).decode('utf-8') 
+                return username, password
+            except:
+                print("Wrong credentials..")
+                exit()
 
     def register(self):
         if not os.path.exists("data"):
