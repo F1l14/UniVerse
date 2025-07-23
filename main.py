@@ -1,7 +1,7 @@
 from eclass import EclassConnector
 from progress import ProgressConnector
 from user import User
-from scheduler import Scheduler
+from new_scheduler import Scheduler
 
 import os
 import time
@@ -40,15 +40,18 @@ def run_eclass(username, password, headless=True):
     # eclass.fetch_courses()
     eclass.sync_courses()
 
+
+scheduler = None
 async def main():
 
-    Scheduler = None
-    def scheduler_menu():
+    
+    async def scheduler_menu():
         print("Scheduler Menu:")
         print("1. Add Job")
         print("2. Start Scheduler")
         print("3. Stop Scheduler")
         print("4. Exit")
+        
         global scheduler
         if scheduler is None:
             scheduler = Scheduler()
@@ -66,12 +69,14 @@ async def main():
                 print("Invalid option, returning to menu.")
                 return
             
-            interval = int(input("Enter interval in hours: "))
+            interval = int(input("Enter interval: "))
             
-            scheduler.add_job(job, interval)
+            scheduler.add_job(job, interval, "minute", username, password, False)
         
         elif choice == '2':
-            scheduler.start()
+        #    avoid system blocking on scheduler infinite loop
+            scheduler.running = True
+            asyncio.create_task(scheduler.start()) 
         elif choice == '3':
             scheduler.stop()
         elif choice == '4':
@@ -82,23 +87,25 @@ async def main():
     username, password = user.login()
     print(f"Logged in as {username}")
     while(True):
-        print("Options:\n1. Eclass\n2. Progress\n3. Scheduler \n4. Exit")
+        print("Options:\n1. Eclass\n2. Progress\n3. Scheduler \n4. Exit\n5. Spectate")
         choice = input("Choose an option (1/2/3/4): ")
         if choice == '1':
             run_eclass(username, password, headless=True)
         elif choice == '2':
             await run_progress(username, password, headless= False)
         elif choice == '3':
-            scheduler_menu()
+            await scheduler_menu()
 
         elif choice == '4':
             print("Exiting...")
             break
         elif choice == '5':
-            is_alive = scheduler.thread.is_alive()
-            while is_alive:
+            await asyncio.sleep(10)
+            while scheduler.running:
                 print("Scheduler is running...")
-                time.sleep(5)   
+                await asyncio.sleep(10)   
+           
+            print("Scheduler OFF")
         else:
             print("Invalid choice. Exiting...")
 
