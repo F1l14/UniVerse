@@ -1,1 +1,4 @@
-ceid.html
+data/
+output/
+temp/
+paddle_models_cache/
