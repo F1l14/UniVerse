@@ -1,15 +1,19 @@
 from eclass import EclassConnector
 from progress import ProgressConnector
 from user import User
+from scheduler import Scheduler
 
 import os
+import time
+import asyncio
 
-def run_progress(headless):
+async def run_progress(username, password, headless=True):
     from ocr import OCR
     retry = True
     retry_counter = 0
     progress = ProgressConnector(username, password, headless=headless)
-    progress.login()
+    await progress.start()
+    await progress.login()
     while retry:
         if retry_counter > 5:
             print("❌ Too many retries, exiting...")
@@ -18,37 +22,86 @@ def run_progress(headless):
         # reload the image only after the first attempt
         reload = retry_counter > 1
         retry_counter += 1
-        while(not progress.fetch_captcha_image(reload = reload)):
+        while(not await progress.fetch_captcha_image(reload = reload)):
             print("fetching image...")
         ocr = OCR()
         ocr.preprocess("temp/captcha.png")
         result = ocr.recognise_text("output/processed.png")
         print("main result:", result)
         os.remove("temp/captcha.png")
-        progress.verify_captcha(result)
-        retry = progress.get_grades()
+        await progress.verify_captcha(result)
+        retry = await progress.get_grades()
 
-def run_eclass(headless):
+    await progress.stop()
+
+def run_eclass(username, password, headless=True):
     eclass = EclassConnector(username, password, headless=headless)
     eclass.login()
     # eclass.fetch_courses()
     eclass.sync_courses()
-    
 
-user = User()
-username, password = user.login()
-print(f"Logged in as {username}")
-print("Options:\n1. Eclass\n2. Progress\n3. Exit")
-choice = input("Choose an option (1/2/3): ")
-if choice == '1':
-    run_eclass(headless=True)
-elif choice == '2':
-    run_progress(headless= False)
-elif choice == '3':
-    print("Exiting...")
-else:
-    print("Invalid choice. Exiting...")
+async def main():
 
-# input("Press Enter to exit...")
+    Scheduler = None
+    def scheduler_menu():
+        print("Scheduler Menu:")
+        print("1. Add Job")
+        print("2. Start Scheduler")
+        print("3. Stop Scheduler")
+        print("4. Exit")
+        global scheduler
+        if scheduler is None:
+            scheduler = Scheduler()
+            print("Scheduler initialized.")
+        else:
+            print("Scheduler already initialized.")
+        
+        choice = input("Choose an option (1/2/3/4): ")
+        if choice == '1':
+            print("Available job functions: 1. fetch_grades")
+            option = input("1/2/3: ")
+            if option == '1':
+                job = run_progress
+            else:
+                print("Invalid option, returning to menu.")
+                return
+            
+            interval = int(input("Enter interval in hours: "))
+            
+            scheduler.add_job(job, interval)
+        
+        elif choice == '2':
+            scheduler.start()
+        elif choice == '3':
+            scheduler.stop()
+        elif choice == '4':
+            print("Exiting Scheduler Menu.")
+            return
+
+    user = User()
+    username, password = user.login()
+    print(f"Logged in as {username}")
+    while(True):
+        print("Options:\n1. Eclass\n2. Progress\n3. Scheduler \n4. Exit")
+        choice = input("Choose an option (1/2/3/4): ")
+        if choice == '1':
+            run_eclass(username, password, headless=True)
+        elif choice == '2':
+            await run_progress(username, password, headless= False)
+        elif choice == '3':
+            scheduler_menu()
+
+        elif choice == '4':
+            print("Exiting...")
+            break
+        elif choice == '5':
+            is_alive = scheduler.thread.is_alive()
+            while is_alive:
+                print("Scheduler is running...")
+                time.sleep(5)   
+        else:
+            print("Invalid choice. Exiting...")
 
 
+if __name__ == "__main__":
+    asyncio.run(main())
