@@ -7,6 +7,7 @@ import os
 import time
 import asyncio
 
+
 async def run_progress(username, password, headless=True):
     from ocr import OCR
     retry = True
@@ -39,6 +40,34 @@ def run_eclass(username, password, headless=True):
     eclass.login()
     # eclass.fetch_courses()
     eclass.sync_courses()
+
+
+# ======================================================
+# import subprocess to run system commands
+import subprocess
+def phoneHandler(phone_id):
+    command = ["kdeconnect-cli", "--ping","-d",  phone_id]
+
+    try:
+
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        print("PING! ", result.stdout)
+        exit()
+    except subprocess.CalledProcessError as e:
+        print("Error pinging device:")
+        print("Device is not Connected...")
+        # print(e.stderr)
+        exit()
+
+def sendToPhone():
+
+    return None
+# ======================================================
 
 
 scheduler = None
@@ -82,9 +111,9 @@ async def main():
         elif choice == '4':
             print("Exiting Scheduler Menu.")
             return
-
+    
     user = User()
-    username, password = user.login()
+    username, password, phone_id = user.login()
     print(f"Logged in as {username}")
     while(True):
         print("Options:\n1. Eclass\n2. Progress\n3. Scheduler \n4. Exit\n5. Spectate")
@@ -106,6 +135,8 @@ async def main():
                 await asyncio.sleep(10)   
            
             print("Scheduler OFF")
+        elif choice == "6":
+            phoneHandler(phone_id)
         else:
             print("Invalid choice. Exiting...")
 

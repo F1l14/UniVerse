@@ -24,7 +24,7 @@ class User:
                 # Decrypt the username and password
                 username = unpad(cipher.decrypt(enc_username), 16).decode('utf-8')
                 password = unpad(cipher.decrypt(enc_password), 16).decode('utf-8') 
-                return username, password
+                return username, password, data["phone_id"]
             except:
                 print("Wrong credentials..")
                 exit()
@@ -45,7 +45,8 @@ class User:
             enc_password = cipher.encrypt(pad(password.encode(), 16))
             data = {
                 "username": base64.b64encode(enc_username).decode('utf-8'),
-                "password": base64.b64encode(enc_password).decode('utf-8')
+                "password": base64.b64encode(enc_password).decode('utf-8'),
+                "phone_id": ""
             }
             with open("data/user_credentials.json", "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
