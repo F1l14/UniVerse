@@ -2,9 +2,8 @@ from eclass import EclassConnector
 from progress import ProgressConnector
 from user import User
 from new_scheduler import Scheduler
-
+import argparse
 import os
-import time
 import asyncio
 
 
@@ -92,11 +91,36 @@ def sendToPhone(phone_id):
     return None
 # ======================================================
 
+def argumentsHandler():
+    parser = argparse.ArgumentParser()
+    interval = None
+    # store_true = false by default
+    parser.add_argument("--scheduler", action="store_true", help="Specify the jobs for the scheduler")
+    parser.add_argument("--all", action="store_true", help="Add all available jobs to the scheduler")
+    parser.add_argument("--eclass", action="store_true", help="Add the eclass files job")
+    parser.add_argument("--progress", action="store_true", help="Add the progress grades job")
+    parser.add_argument("--ceid", action="store_true", help="Add the ceid news job")
+    parser.add_argument("interval", help="The scheduler time interval in hours")
+    args = parser.parse_args()
+    if args.scheduler:
+        if args.all:
+            print("YESYESYES")
+        if args.eclass:
+            return
+        if args.progress:
+            return
+        if args.ceid:
+            return
+        interval = args.interval
+        print(interval)
+
+    
+
 
 scheduler = None
 async def main():
-
-    
+    argumentsHandler()
+    exit()
     async def scheduler_menu():
         print("Scheduler Menu:")
         print("1. Add Job")
