@@ -17,7 +17,7 @@ playwright install
 
 ## Instructions
 
-Register on the app once to let the data/user_credentials.json file to be created. Then use `kdeconnect-cli -l` to get your phone's id and paste it on the user_credentials.json on the `phone_id`.
+Register on the app once to let the data/user_credentials.json file to be created. Then use `kdeconnect-cli -l` to get your phone's id and paste it on the user_credentials.json on the `phone_id` field.
 
 ## todo:
 
