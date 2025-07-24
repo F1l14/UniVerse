@@ -57,14 +57,37 @@ def phoneHandler(phone_id):
             check=True
         )
         print("PING! ", result.stdout)
-        exit()
+        sendToPhone(phone_id)
+
     except subprocess.CalledProcessError as e:
         print("Error pinging device:")
         print("Device is not Connected...")
         # print(e.stderr)
         exit()
 
-def sendToPhone():
+def sendToPhone(phone_id):
+    def sendFile(filepath):
+        command = ["kdeconnect-cli", "--share", filepath, "-d", phone_id]
+        try:
+
+            result = subprocess.run(
+                command,
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            print("Sent file: ", filepath)
+
+        except subprocess.CalledProcessError as e:
+            print("Error sending file:", file)
+            print(e.stderr)
+            exit()
+    
+    files = ["data/courses.json", "data/grades.json"]
+    for file in files:
+        if os.path.exists(file):
+            sendFile(file)
+    exit()
 
     return None
 # ======================================================
