@@ -1,0 +1,22 @@
+[project]
+name = "universe"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "aioconsole>=0.8.2",
+    "crypto>=1.4.1",
+    "ddddocr>=1.6.1",
+    "easyocr>=1.7.2",
+    "numpy>=2.5.0",
+    "opencv-python>=4.13.0.92",
+    "pillow>=12.2.0",
+    "playwright>=1.60.0",
+    "plyer>=2.1.0",
+    "pycryptodome>=3.23.0",
+    "requests>=2.34.2",
+    "schedule>=1.2.2",
+]
+
+

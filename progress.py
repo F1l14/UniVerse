@@ -166,12 +166,18 @@ class ProgressConnector:
             for course_name, details in courses.items():
                 if details["year"] == academic_year:
                     if semester in previous_grades and course_name in previous_grades[semester]:
-                        if previous_grades[semester][course_name]["state"] != details["state"] or previous_grades[semester][course_name]["grade"] != details["grade"]:
-                                    Notification().notify(
-                                        title="Νέος Βαθμός",
-                                        message=f"{course_name}\n Βαθμός: {details['grade']}",
-                                        timeout=0
-                                    )
+                        if previous_grades[semester][course_name]["state"] != details["state"] :
+                            Notification().notify(
+                                title="Νέα Κατάσταση",
+                                message=f"{course_name}\n Κατάσταση: {details['state']}",
+                                timeout=0
+                            )
+                        if  previous_grades[semester][course_name]["grade"] != details["grade"]:
+                            Notification().notify(
+                                title="Νέος Βαθμός",
+                                message=f"{course_name}\n Βαθμός: {details['grade']}",
+                                timeout=0
+                            )
 
 
     def save_grades(self, grades):
