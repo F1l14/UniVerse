@@ -3,9 +3,10 @@ name = "universe"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = "==3.12.*"
 dependencies = [
     "aioconsole>=0.8.2",
+    "bs4>=0.0.2",
     "crypto>=1.4.1",
     "ddddocr>=1.6.1",
     "easyocr>=1.7.2",

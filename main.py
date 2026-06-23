@@ -1,9 +1,9 @@
 import asyncio
 import os
 
-os.environ["FLAGS_use_mkldnn"] = "0"
-os.environ["FLAGS_enable_onednn_passes"] = "0"
-os.environ["FLAGS_enable_pir_in_executor"] = "0"
+# os.environ["FLAGS_use_mkldnn"] = "0"
+# os.environ["FLAGS_enable_onednn_passes"] = "0"
+# os.environ["FLAGS_enable_pir_in_executor"] = "0"
 import subprocess
 from eclass import EclassConnector
 from progress import ProgressConnector
@@ -22,7 +22,7 @@ async def run_progress(username, password, headless=True):
     await progress.login()
     while retry:
         if retry_counter > 5:
-            print("❌ Too many retries, exiting...")
+            print("XXX Too many retries, exiting...")
             break
 
         # reload the image only after the first attempt

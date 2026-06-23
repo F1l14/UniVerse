@@ -48,9 +48,9 @@ class ProgressConnector:
         print("Final URL:", current_url)
 
         if "eclass" in current_url or "logout" in page_content.lower():
-            print("✅ Login successful")
+            print("[OK] Login successful")
         else:
-            print("⚠️ Login may have failed")
+            print("[XXX] Login may have failed")
             error = await self.page.query_selector('.form-error')
             if error:
                 print("Error message:", await error.text_content())
@@ -66,7 +66,7 @@ class ProgressConnector:
 
         iframe = self.page.frame(name="isolatedWorkArea")
         if not iframe:
-            print("⚠️ No iframe found with id 'isolatedWorkArea'")
+            print("[XXX] No iframe found with id 'isolatedWorkArea'")
             return False
         
         container = await iframe.query_selector("div.lsHTMLContainer")
@@ -76,7 +76,7 @@ class ProgressConnector:
                 await reload_button.click()
                 await self.page.wait_for_timeout(2000)
             else:
-                print("⚠️ Reload button not found.")
+                print("[XXX] Reload button not found.")
                 return False
 
         image_element = await container.query_selector("img[ct='IMG']")
@@ -87,10 +87,10 @@ class ProgressConnector:
             os.makedirs("temp", exist_ok=True)
             with open("temp/captcha.png", "wb") as f:
                 f.write(response.content)
-            print("✅ Captcha image saved as 'captcha.png'")
+            print("[OK] Captcha image saved as 'captcha.png'")
             return True
         else:
-            print(f"⚠️ Failed to fetch captcha image, status code: {response.status_code}")
+            print(f"[XXX] Failed to fetch captcha image, status code: {response.status_code}")
             return False
 
     async def verify_captcha(self, captcha_text):
@@ -108,7 +108,7 @@ class ProgressConnector:
         try:
             rows = await table.query_selector_all("tbody tr[rt='1']")
         except Exception as e:
-            print("⚠️ Retrying captcha...")
+            print("[XXX] Retrying captcha...")
             return True # retry captcha if table not found
 
         grades = {}
