@@ -22,8 +22,19 @@ async def run_progress(username, password, headless=True):
         # reload the image only after the first attempt
         reload = retry_counter > 1
         retry_counter += 1
-        while(not await progress.fetch_captcha_image(reload = reload)):
-            print("fetching image...")
+
+
+       
+        print("fetching image...")
+        await progress.fetch_captcha_image(reload=reload)
+        
+            
+            
+        # while(not await progress.fetch_captcha_image(reload = reload)):
+        #     print("fetching image...")
+
+
+
         ocr = OCR()
         ocr.preprocess("temp/captcha.png")
         result = ocr.recognise_text("output/processed.png")
@@ -119,8 +130,9 @@ def argumentsHandler():
 
 scheduler = None
 async def main():
-    argumentsHandler()
-    exit()
+    #!TODO Fix scheduler fetching image
+    #!TODO argumentsHandler()
+    #exit()
     async def scheduler_menu():
         print("Scheduler Menu:")
         print("1. Add Job")
@@ -147,7 +159,7 @@ async def main():
             
             interval = int(input("Enter interval: "))
             
-            scheduler.add_job(job, interval, "minute", username, password, False)
+            scheduler.add_job(job, interval, "minute", username, password, True)
         
         elif choice == '2':
         #    avoid system blocking on scheduler infinite loop
