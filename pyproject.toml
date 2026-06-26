@@ -10,6 +10,7 @@ dependencies = [
     "crypto>=1.4.1",
     "ddddocr>=1.6.1",
     "easyocr>=1.7.2",
+    "notif>=0.7",
     "notification>=0.2.1",
     "numpy>=2.5.0",
     "opencv-python>=4.13.0.92",

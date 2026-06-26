@@ -348,10 +348,30 @@ wheels = [
 ]
 
 [[package]]
+name = "notif"
+version = "0.7"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "notify-run" },
+    { name = "pymsteams" },
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/63/b1/8c05e86d8d66e737f074c31fadd9c6b6004349b126623ae7fc5d4df19800/notif-0.7.tar.gz", hash = "sha256:b720e06374ae3456f9c653852651373099f71d666f41c6ce98c8f8242fe19dac", size = 11191, upload-time = "2022-07-26T15:34:29.418Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bc/3e/ca5c1ee96bc7ef208f5cdf6b2d3369a128bee2da648b48c3958a77286f0f/notif-0.7-py3-none-any.whl", hash = "sha256:42de4758562b01750e459524158e8f240dabb52e57920b4874299879b03f5e5e", size = 13158, upload-time = "2022-07-26T15:33:49.056Z" },
+]
+
+[[package]]
 name = "notification"
 version = "0.2.1"
 source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/be/86/9d52fd7950d3c5d8dab10dc3f3ab228d78f73cf3422a2f1fef32dfcc694f/notification-0.2.1.tar.gz", hash = "sha256:2089c719ea22c12c8742b28214e1bd2eda9c45b8aa37df6128d8c91392ec680a", size = 3927, upload-time = "2010-03-11T17:21:54.824Z" }
+
+[[package]]
+name = "notify-run"
+version = "0.0.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/6b/6c/f4596f95593b9af9896f8363b2fcb8520a730a2fae1e713e481a21d01d73/notify-run-0.0.1.tar.gz", hash = "sha256:8a3963028d0d72c9f37b4c5c3d0a7a21469a377e65eb4cd4a2037f2facaa9bb0", size = 2085, upload-time = "2018-02-02T13:50:00.128Z" }
 
 [[package]]
 name = "numpy"
@@ -695,6 +715,18 @@ wheels = [
 ]
 
 [[package]]
+name = "pymsteams"
+version = "0.2.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d9/f5/8b9b9572d4f582e5a3a135110c07218cd43ad6d067a986576d0467bf6251/pymsteams-0.2.5.tar.gz", hash = "sha256:9f76ca3a3de17b49ce3c5c314ee0e88b8bd2be78fc66f693ade1b7cabf23af70", size = 88943, upload-time = "2025-01-07T23:59:10.763Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/77/55/2f83baa2a9d1eada20f41dcced4d4fb7ba14d864b160be812786802e39c3/pymsteams-0.2.5-py3-none-any.whl", hash = "sha256:bda78f36c4a59baa10fa21928980349a841b03c78dc7d6020f230aea4aeab2b7", size = 14684, upload-time = "2025-01-07T23:59:08.351Z" },
+]
+
+[[package]]
 name = "python-bidi"
 version = "0.6.10"
 source = { registry = "https://pypi.org/simple" }
@@ -946,6 +978,7 @@ dependencies = [
     { name = "crypto" },
     { name = "ddddocr" },
     { name = "easyocr" },
+    { name = "notif" },
     { name = "notification" },
     { name = "numpy" },
     { name = "opencv-python" },
@@ -964,6 +997,7 @@ requires-dist = [
     { name = "crypto", specifier = ">=1.4.1" },
     { name = "ddddocr", specifier = ">=1.6.1" },
     { name = "easyocr", specifier = ">=1.7.2" },
+    { name = "notif", specifier = ">=0.7" },
     { name = "notification", specifier = ">=0.2.1" },
     { name = "numpy", specifier = ">=2.5.0" },
     { name = "opencv-python", specifier = ">=4.13.0.92" },
