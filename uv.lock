@@ -348,6 +348,12 @@ wheels = [
 ]
 
 [[package]]
+name = "notification"
+version = "0.2.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/be/86/9d52fd7950d3c5d8dab10dc3f3ab228d78f73cf3422a2f1fef32dfcc694f/notification-0.2.1.tar.gz", hash = "sha256:2089c719ea22c12c8742b28214e1bd2eda9c45b8aa37df6128d8c91392ec680a", size = 3927, upload-time = "2010-03-11T17:21:54.824Z" }
+
+[[package]]
 name = "numpy"
 version = "2.5.0"
 source = { registry = "https://pypi.org/simple" }
@@ -940,6 +946,7 @@ dependencies = [
     { name = "crypto" },
     { name = "ddddocr" },
     { name = "easyocr" },
+    { name = "notification" },
     { name = "numpy" },
     { name = "opencv-python" },
     { name = "pillow" },
@@ -957,6 +964,7 @@ requires-dist = [
     { name = "crypto", specifier = ">=1.4.1" },
     { name = "ddddocr", specifier = ">=1.6.1" },
     { name = "easyocr", specifier = ">=1.7.2" },
+    { name = "notification", specifier = ">=0.2.1" },
     { name = "numpy", specifier = ">=2.5.0" },
     { name = "opencv-python", specifier = ">=4.13.0.92" },
     { name = "pillow", specifier = ">=12.2.0" },
