@@ -12,48 +12,91 @@ from new_scheduler import Scheduler
 import aioconsole  # async input for non-blocking menu
 
 
-async def run_progress(username, password, headless=True):
+async def run_progress(username, password, headless=True, webhook_url=None):
     """Fetch grades from Progress with CAPTCHA handling."""
     from ocr import OCR
-    retry = True
-    retry_counter = 0
-    progress = ProgressConnector(username, password, headless=headless)
-    await progress.start()
-    await progress.login()
-    while retry:
-        if retry_counter > 5:
-            print("XXX Too many retries, exiting...")
-            break
+    from datetime import datetime
+    
+    start_time = datetime.now()
+    progress = ProgressConnector(username, password, headless=headless, webhook_url=webhook_url)
+    success = False
+    
+    try:
+        await progress.start()
+        await progress.login()
 
-        # reload the image only after the first attempt
-        reload = retry_counter > 1
-        retry_counter += 1
+        for attempt in range(1, 6):
+            print(f"--- CAPTCHA Attempt {attempt} ---")
+            print("Fetching CAPTCHA image...")
+            if not await progress.fetch_captcha_image(reload=(attempt > 1)):
+                print("[XXX] Failed to fetch CAPTCHA image. Refreshing and trying again...")
+                continue
 
-        print("Fetching CAPTCHA image...")
-        await progress.fetch_captcha_image(reload=reload)
+            ocr = OCR()
+            top_candidates = ocr.recognise_top_candidates("temp/captcha.png", max_count=3)
+            
+            try:
+                os.remove("temp/captcha.png")
+            except FileNotFoundError:
+                pass
 
-        ocr = OCR()
-        # ocr.preprocess("temp/captcha.png")
-        # result = ocr.recognise_text("output/processed.png")
-        result = ocr.recognise_text("temp/captcha.png")
-        print("Main result:", result)
-        try:
-            os.remove("temp/captcha.png")
-        except FileNotFoundError:
-            pass
+            if not top_candidates:
+                print("No confident candidates found.")
+                continue
 
-        await progress.verify_captcha(result)
-        retry = await progress.get_grades()
+            # Only try the top candidate (index 0) because any submission refreshes the CAPTCHA image
+            candidate = top_candidates[0]
+            print(f"Trying top candidate: {candidate}")
+            await progress.verify_captcha(candidate)
+            retry = await progress.get_grades()
+            if not retry:
+                success = True
+                break
+            else:
+                print(f"Candidate {candidate} was incorrect. Retrying with new CAPTCHA...")
 
-    await progress.stop()
+        if not success:
+            print("[XXX] All captcha attempts failed after reloading.")
+            if webhook_url:
+                from notification import Notification
+                Notification(webhook_url=webhook_url).notify(
+                    title="UniVerse Error",
+                    message="The grade checker failed to fetch your grades after 5 attempts."
+                )
+    except Exception as e:
+        print(f"[XXX] Crash in run_progress: {e}")
+        if webhook_url:
+            from notification import Notification
+            Notification(webhook_url=webhook_url).notify(
+                title="UniVerse Crash",
+                message=f"The grade checker crashed unexpectedly:\n`{str(e)}`"
+            )
+    finally:
+        await progress.stop()
+        end_time = datetime.now()
+        
+        stats = {
+            "start_time": start_time.strftime("%Y-%m-%d %H:%M:%S"),
+            "end_time": end_time.strftime("%Y-%m-%d %H:%M:%S"),
+            "duration_seconds": round((end_time - start_time).total_seconds(), 2),
+            "captcha_attempts": progress.captcha_counter,
+            "grades_modified": getattr(progress, "grades_modified", False),
+            "status": "success" if success else "failed"
+        }
+        
+        return stats
 
 
-def run_eclass(username, password, headless=True):
+async def run_eclass(username, password, headless=True):
     """Fetch and sync Eclass courses."""
     eclass = EclassConnector(username, password, headless=headless)
-    eclass.login()
-    # eclass.fetch_courses()
-    eclass.sync_courses()
+    await eclass.start()
+    try:
+        await eclass.login()
+        # await eclass.fetch_courses()
+        await eclass.sync_courses()
+    finally:
+        await eclass.stop()
 
 
 def phone_handler(phone_id):
@@ -92,13 +135,14 @@ async def print_main_menu():
     print("3. Scheduler - Manage automated tasks")
     print("4. Spectate - Watch scheduler status")
     print("5. Phone - Send files to phone via KDE Connect")
+    print("6. Debug - Test CAPTCHA reload button")
     print("0. Exit")
     print("-" * 40)
-    choice = await aioconsole.ainput("Select an option (0-5): ")
+    choice = await aioconsole.ainput("Select an option (0-6): ")
     return choice.strip()
 
 
-async def scheduler_menu(username, password, scheduler):
+async def scheduler_menu(username, password, scheduler, webhook_url=None):
     """Async menu for scheduler management."""
     while True:
         print("\n" + "-" * 30)
@@ -130,7 +174,7 @@ async def scheduler_menu(username, password, scheduler):
                 print("Please enter a positive integer for interval.")
                 continue
 
-            scheduler.add_job(job, interval, "minute", username, password, True)
+            scheduler.add_job(job, interval, "minute", username, password, True, webhook_url)
             print(f"Job added: {job.__name__} every {interval} minute(s).")
 
         elif choice == '2':
@@ -159,11 +203,38 @@ async def scheduler_menu(username, password, scheduler):
             print("Invalid choice. Please try again.")
 
 
+async def debug_reload_button(username, password, webhook_url=None):
+    """Debug utility to log in and test clicking the CAPTCHA reload button."""
+    from progress import ProgressConnector
+    progress = ProgressConnector(username, password, headless=False)
+    await progress.start()
+    await progress.login()
+    
+    print("[DEBUG] Fetching initial CAPTCHA image...")
+    await progress.fetch_captcha_image(reload=False)
+    await asyncio.sleep(15)
+    
+    for i in range(1, 4):
+        print(f"[DEBUG] Clicking CAPTCHA reload button #{i} via fetch_captcha_image(reload=True)...")
+        await progress.fetch_captcha_image(reload=True)
+        await asyncio.sleep(15)
+    
+    print("[DEBUG] Sending test Discord notification...")
+    from notification import Notification
+    Notification(webhook_url=webhook_url).notify(
+        title="UniVerse Debug Test",
+        message="This is a test notification from the CAPTCHA reload debug menu choice 6! Your Webhook connection works!"
+    )
+    
+    print("[DEBUG] Debug test completed successfully. Stopping browser...")
+    await progress.stop()
+
+
 async def main():
     """Main application entry point."""
     print("Initializing UniVerse...")
     user = User()
-    username, password, phone_id = user.login()
+    username, password, phone_id, discord_webhook = user.login()
     print(f"Logged in as {username}")
 
     scheduler = Scheduler()
@@ -173,14 +244,14 @@ async def main():
 
         if choice == '1':
             print("\nLaunching Eclass...")
-            run_eclass(username, password, headless=True)
+            await run_eclass(username, password, headless=True)
 
         elif choice == '2':
             print("\nFetching Progress grades...")
-            await run_progress(username, password, headless=False)
+            await run_progress(username, password, headless=False, webhook_url=discord_webhook)
 
         elif choice == '3':
-            await scheduler_menu(username, password, scheduler)
+            await scheduler_menu(username, password, scheduler, discord_webhook)
 
         elif choice == '4':
             print("\nSpectating scheduler status...")
@@ -201,6 +272,10 @@ async def main():
             # phone_handler calls SystemExit on success; if we reach here, something went wrong
             print("Phone handler finished.")
 
+        elif choice == '6':
+            print("\nRunning CAPTCHA reload debug test...")
+            await debug_reload_button(username, password, discord_webhook)
+
         elif choice == '0':
             print("\nExiting UniVerse. Goodbye!")
             if scheduler.running:
@@ -208,7 +283,7 @@ async def main():
             break
 
         else:
-            print("Invalid option. Please enter a number between 0 and 5.")
+            print("Invalid option. Please enter a number between 0 and 6.")
 
 
 if __name__ == "__main__":

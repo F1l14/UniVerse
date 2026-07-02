@@ -14,7 +14,9 @@ class User:
         
         with open("data/user_credentials.json", "r", encoding="utf-8") as f:
             data = json.load(f)
-            encryption = getpass.getpass("Decrypt Password: ")
+            encryption = os.environ.get("DECRYPT_PASSWORD")
+            if not encryption:
+                encryption = getpass.getpass("Decrypt Password: ")
             try:
                 encryption = pad(encryption.encode(), 16)  # pad the password to be a multiple of 16 bytes for AES compatibility
                 cipher = AES.new(encryption, AES.MODE_ECB)
@@ -24,7 +26,7 @@ class User:
                 # Decrypt the username and password
                 username = unpad(cipher.decrypt(enc_username), 16).decode('utf-8')
                 password = unpad(cipher.decrypt(enc_password), 16).decode('utf-8') 
-                return username, password, data["phone_id"]
+                return username, password, data.get("phone_id", ""), data.get("discord_webhook", "")
             except:
                 print("Wrong credentials..")
                 exit()
@@ -32,13 +34,15 @@ class User:
     def register(self):
         if not os.path.exists("data"):
             os.mkdir("data")
-        if not os.path.isfile("/data/user_credentials.text"):
+        if not os.path.isfile("data/user_credentials.json"):
             encryption = input("Decrypt Password: ")
             # pad the password to be a multiple of 16 bytes for AES compatibility
             encryption = pad(encryption.encode(), 16)
             cipher = AES.new(encryption, AES.MODE_ECB)
             username = input("Username: ")
             password = input("Password: ")
+            discord_webhook = input("Discord Webhook URL (optional, press Enter to skip): ").strip()
+            phone_id = input("KDE Connect Phone ID (optional, press Enter to skip): ").strip()
             
             # Encrypt the username and password after converting them to bytes
             enc_username = cipher.encrypt(pad(username.encode(), 16))
@@ -46,7 +50,8 @@ class User:
             data = {
                 "username": base64.b64encode(enc_username).decode('utf-8'),
                 "password": base64.b64encode(enc_password).decode('utf-8'),
-                "phone_id": ""
+                "phone_id": phone_id,
+                "discord_webhook": discord_webhook
             }
             with open("data/user_credentials.json", "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
