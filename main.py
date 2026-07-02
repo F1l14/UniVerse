@@ -165,11 +165,13 @@ async def scheduler_menu(username, password, scheduler, webhook_url=None):
                 print("Invalid option. Returning to scheduler menu.")
                 continue
 
-            interval_str = await aioconsole.ainput("Enter interval (minutes): ")
+            interval_str = await aioconsole.ainput("Enter interval (minutes, minimum 60): ")
             try:
                 interval = int(interval_str)
-                if interval <= 0:
-                    raise ValueError
+                if interval < 60:
+                    print("\n[WARNING] For safety reasons, the check interval cannot be less than 60 minutes.")
+                    print("This limit protects your account from rate-limiting, IP bans, or suspensions.")
+                    continue
             except ValueError:
                 print("Please enter a positive integer for interval.")
                 continue
@@ -247,8 +249,35 @@ async def main():
             await run_eclass(username, password, headless=True)
 
         elif choice == '2':
-            print("\nFetching Progress grades...")
-            await run_progress(username, password, headless=False, webhook_url=discord_webhook)
+            # Warn user if they are checking manually too frequently
+            can_proceed = True
+            stats_file = "metadata/run_progress_stats.json"
+            if os.path.exists(stats_file):
+                try:
+                    import json
+                    with open(stats_file, "r", encoding="utf-8") as f:
+                        history = json.load(f)
+                        if history and isinstance(history, list):
+                            last_run = history[-1]
+                            last_start_str = last_run.get("start_time")
+                            if last_start_str:
+                                from datetime import datetime
+                                last_start = datetime.strptime(last_start_str, "%Y-%m-%d %H:%M:%S")
+                                time_elapsed = (datetime.now() - last_start).total_seconds()
+                                
+                                # Warn if less than 30 minutes (1800 seconds)
+                                if time_elapsed < 1800:
+                                    print(f"\n[WARNING] You checked grades recently ({int(time_elapsed // 60)} minutes ago).")
+                                    print("Checking too frequently can trigger portal rate-limits or IP blocks.")
+                                    confirm = await aioconsole.ainput("Are you sure you want to proceed? (y/N): ")
+                                    if confirm.strip().lower() not in ['y', 'yes']:
+                                        can_proceed = False
+                except Exception:
+                    pass
+            
+            if can_proceed:
+                print("\nFetching Progress grades...")
+                await run_progress(username, password, headless=False, webhook_url=discord_webhook)
 
         elif choice == '3':
             await scheduler_menu(username, password, scheduler, discord_webhook)

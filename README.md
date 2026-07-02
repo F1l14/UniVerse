@@ -58,14 +58,14 @@ To configure the script to check grades automatically in the background even if 
    ```
 
 > [!CAUTION]
-> **CRITICAL RATE LIMIT WARNING (1-HOUR LIMIT):**
-> You **MUST NOT** schedule checks more frequently than once every hour (do not use intervals like 5, 10, or 30 minutes). 
+> **CRITICAL RATE LIMIT WARNINGS (BUILT-IN SAFETY):**
+> Frequent automated logins will trigger UPatras portal defenses, potentially leading to automated **IP bans/blocks** or **account suspension**. To protect your account, the codebase has built-in safety checks:
 > 
-> Frequent automated logins will trigger UPatras portal defenses, potentially leading to:
-> - Automated **IP bans / blocks** (via Cloudflare/WAF)
-> - **Account suspension** by security administrators
-> 
-> Keep the cron schedule set to **once per hour** (e.g. `0 * * * *` as shown above) or even less frequently (e.g. every 2 to 4 hours: `0 */3 * * *`).
+> 1. **Interactive Scheduler (main.py):** The menu scheduler explicitly rejects any interval under **60 minutes**.
+> 2. **Manual Check (Option 2):** If you attempt to check grades manually less than **30 minutes** after your last run, the app will warn you and require confirmation before proceeding.
+> 3. **Background Scheduler (optimized_scheduler.py):**
+>    - Enforces a default safety cooldown of **60 minutes**. Any run triggered within the cooldown period is silently skipped.
+>    - You can pass an optional custom interval argument (in minutes, e.g., `python optimized_scheduler.py 90`), but the script will throw an error and exit if you specify any value **under 60 minutes** (e.g., `python optimized_scheduler.py 30`).
 
 ---
 
